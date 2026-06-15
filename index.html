@@ -1,0 +1,87 @@
+# WCQF Terminal · World Cup Quant Fund 2026
+### App móvil de picks cuantitativos para el Mundial FIFA 2026
+
+---
+
+## 🚀 Despliegue en Netlify (3 pasos)
+
+### Opción A — Drag & Drop (más rápido)
+1. Ve a [app.netlify.com](https://app.netlify.com) e inicia sesión (gratis)
+2. Arrastra **esta carpeta** (`wcqf-netlify/`) al recuadro de deploy
+3. ¡Listo! Tendrás una URL tipo `https://random-name.netlify.app`
+
+### Opción B — GitHub (recomendado para actualizaciones)
+1. Crea un repo en GitHub y sube esta carpeta
+2. En Netlify → **New site → Import from GitHub**
+3. Selecciona el repo, sin cambiar nada más → **Deploy site**
+
+---
+
+## ⚡ Configurar Betfair Exchange (cuotas en tiempo real)
+
+Sin esto la app funciona con cuotas estáticas. Con esto, se actualizan cada 5 minutos.
+
+1. Regístrate en [developer.betfair.com](https://developer.betfair.com)
+2. Crea una aplicación → obtén tu **App Key** (delayed tier = gratuito)
+3. En Netlify → **Site Settings → Environment Variables → Add variable**:
+
+| Variable              | Valor                    |
+|-----------------------|--------------------------|
+| `BETFAIR_APP_KEY`     | tu clave de aplicación   |
+| `BETFAIR_USERNAME`    | tu usuario de Betfair    |
+| `BETFAIR_PASSWORD`    | tu contraseña            |
+
+4. Ve a **Deploys → Trigger deploy** para que tome las variables
+
+---
+
+## 📱 Agregar a pantalla de inicio (PWA)
+
+**iPhone**: Safari → compartir → "Agregar a inicio"  
+**Android**: Chrome → menú → "Agregar a pantalla de inicio"
+
+La app funciona **offline** (usa caché del último fetch de Betfair).
+
+---
+
+## 🏗️ Estructura del proyecto
+
+```
+wcqf-netlify/
+├── index.html              ← Shell de la app
+├── manifest.json           ← Config PWA
+├── sw.js                   ← Service worker (offline)
+├── netlify.toml            ← Configuración Netlify
+├── css/
+│   └── app.css             ← Estilos mobile-first
+├── js/
+│   ├── data.js             ← Datos: equipos, resultados, calendario
+│   ├── engine.js           ← Modelo Poisson-Elo, Monte Carlo
+│   ├── picks.js            ← Picks con reglas de consistencia + Alpha
+│   ├── betfair.js          ← Cliente Betfair (polling, caché)
+│   └── app.js              ← Controlador principal
+└── netlify/
+    └── functions/
+        └── betfair-odds.js ← Proxy serverless para Betfair API
+```
+
+---
+
+## 📐 Reglas de consistencia O/U
+
+| xG total proyectado | Pick recomendable |
+|---------------------|-------------------|
+| < 2.30              | Solo Under 2.5    |
+| 2.30 – 2.60         | Zona de equilibrio (máx 2★) |
+| > 2.60              | Solo Over 2.5     |
+
+## ⚡ Alpha Picks
+
+Se activa cuando:
+- El modelo detecta ≥ 8pp de edge en un resultado con P(modelo) ≤ 52%
+- O cuando un equipo subió ≥ 18 puntos Elo con resultados reales pero el mercado aún usa cuotas pre-torneo
+- Entre 10–20% de picks pueden ser contrarios al consenso
+
+---
+
+⚠️ *Herramienta de investigación cuantitativa. No es consejo de apuestas. El edge estadístico solo se materializa sobre grandes muestras independientes. La casa siempre aplica overround.*
